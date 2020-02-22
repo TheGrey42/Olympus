@@ -1,22 +1,31 @@
 package edu.uky.ai.planning.ex;
 
-import java.util.List;
+import java.util.Random;
 
 import edu.uky.ai.SearchBudget;
+import edu.uky.ai.logic.Bindings;
+import edu.uky.ai.logic.Literal;
+import edu.uky.ai.logic.Proposition;
+import edu.uky.ai.logic.Variable;
+import edu.uky.ai.planning.Operator;
+import edu.uky.ai.planning.Utilities;
+import edu.uky.ai.planning.ps.CausalLink;
+import edu.uky.ai.planning.ps.Flaw;
+import edu.uky.ai.planning.ps.OpenPreconditionFlaw;
+import edu.uky.ai.planning.ps.PartialStep;
+import edu.uky.ai.planning.ps.PlanSpaceNode;
+import edu.uky.ai.planning.ps.PlanSpaceRoot;
 import edu.uky.ai.planning.ss.ForwardPlanner;
 import edu.uky.ai.planning.ss.StateSpaceProblem;
-import edu.uky.ai.logic.*;
-import edu.uky.ai.planning.*;
-import edu.uky.ai.planning.Utilities;
+import edu.uky.ai.util.DirectedAcyclicGraph;
+import edu.uky.ai.util.ImmutableList;
 
-import java.util.Iterator;
-import java.util.function.Consumer;
-import edu.uky.ai.util.*;
 /**
  * A planner that uses simple breadth first search through the space of states.
  * 
  * @author Your Name
  */
+
 public class ExamplePlanner extends ForwardPlanner {
 
 	/**
@@ -26,21 +35,26 @@ public class ExamplePlanner extends ForwardPlanner {
 	 * this file (ExamplePlanner.java) in the Package Explorer and choosing
 	 * Refactor > Rename.
 	 */
+	
+	public static final<E> String Stringify(ImmutableList<E> list){
+		String string = "[";
+		boolean first = true;
+		for (E element : list){
+			if (first)
+				first = false;
+			else
+				string += ", ";
+			string += element;
+		}
+		return string + "]";
+	}
+	
 	public ExamplePlanner() {
 		super("Example");
 	}
 
 	@Override
 	protected BreadthFirstSearch makeForwardSearch(StateSpaceProblem problem, SearchBudget budget) {
-		Proposition goal  = problem.goal;
-		State initialstate = problem.initial;
-		ImmutableArray<Operator> operators = problem.domain.operators;
-		Operator chosengoal = operators.get(0);
-		Literal[] preagenda = Utilities.toLiterals(goal);
-		Literal agenda1 = preagenda[0];
-		Proposition preffectgoal = chosengoal.precondition;
-		System.out.println(agenda1);
-		
 		return new BreadthFirstSearch(problem, budget);
 	}
 }

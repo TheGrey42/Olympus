@@ -19,8 +19,8 @@ public class DPGO223planner extends PlanSpacePlanner {
 		super("dpgo223");
 	}
 		
-	protected DPGO223planner makeSearch(Problem problem, SearchBudget budget) {
-		return new POPsearch(problem, budget);
+	protected PlanSpaceSearch makeSearch(Problem problem, SearchBudget budget) {
+		return new POP(problem, budget);
 	}
 	
 }

@@ -20,6 +20,7 @@ import edu.uky.ai.planning.ss.StateSpaceProblem;
 public class BreadthFirstSearch extends ForwardSearch {
 
 	/** The queue which will hold the frontier (states not yet visited) */
+	// Turn this into a min prio queue
 	private final Queue<ForwardNode> queue = new LinkedList<>();
 	
 	/**
@@ -43,9 +44,7 @@ public class BreadthFirstSearch extends ForwardSearch {
 			ForwardNode current = queue.poll();
 			// Check if it is a solution.
 			if(problem.isSolution(current.plan))
-				{
 				return current.plan;
-				}
 			// Consider every possible step...
 			for(Step step : problem.steps) {
 				// If it's precondition is met in the current state...
