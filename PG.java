@@ -17,10 +17,7 @@ public class PG extends SubgraphSearch {
 	Stack<SubgraphSpaceNode> stack = new Stack<SubgraphSpaceNode>();
 	
 	//Recursive Satisfy goals 
-	SubGraphSpaceNode GoalSatisfier(Iterable<LiteralNode> goals, SubgraphSpaceNode current, int level) {
-		if (level == 0) {
-			return current;
-		}
+	public void GoalSatisfier(Iterable<LiteralNode> goals, SubgraphSpaceNode current, int level, Subgraph subgraph) {
 		Iterator<LiteralNode> iterate = goals.iterator();
 		while(iterate.hasNext()) {
 			
@@ -31,13 +28,15 @@ public class PG extends SubgraphSearch {
 	
 	public SubgraphSpaceNode findSubgraph() {
 		stack.add(root);
-		Iterable<LiteralNode> goal = root.graph.goals;
+		Subgraph subgraph = new Subgraph(); 
+		Iterable<LiteralNode> goals = root.graph.goals;
 		while (!stack.empty()) {
 			SubgraphSpaceNode currentNode = stack.pop();
 			int testLevel = currentNode.subgraph.first.level;
 			if (testLevel == 0) {
 				return currentNode;
 			}
+			GoalSatisfier(goals,currentNode, testLevel, subgraph);
 		}
 		return null;
 	}
