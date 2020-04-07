@@ -1,0 +1,109 @@
+package edu.uky.ai.planning.ex;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
+
+import edu.uky.ai.SearchBudget;
+import edu.uky.ai.logic.HashState;
+import edu.uky.ai.logic.Literal;
+import edu.uky.ai.logic.MutableState;
+import edu.uky.ai.logic.State;
+import edu.uky.ai.planning.Plan;
+import edu.uky.ai.planning.Step;
+import edu.uky.ai.planning.ss.ForwardNode;
+import edu.uky.ai.planning.ss.ForwardSearch;
+import edu.uky.ai.planning.ss.StateSpaceProblem;
+import edu.uky.ai.util.ImmutableArray;
+import edu.uky.ai.util.MinPriorityQueue;
+
+/**
+ * A planner that uses simple breadth first search through the space of states.
+ * 
+ * @author Stephen G. Ware
+ */
+public class BFS extends ForwardSearch {
+
+	/** The queue which will hold the frontier (states not yet visited) */
+	private final MinPriorityQueue<ForwardNode> queue = new MinPriorityQueue();
+	
+	
+	/**
+	 * Constructs a new state space search object.
+	 * 
+	 * @param problem the problem to solve
+	 * @param budget the search budget, which constrains how many states may be
+	 * visited and how much time the search can take
+	 */
+	public BFS(StateSpaceProblem problem, SearchBudget budget) {
+		super(problem, budget);
+	}
+	
+	public class HeuristicStorage{
+		public Literal literal = null;
+		public int cost = 999999;
+	
+		public HeuristicStorage(Literal literal, int value) {
+			this.literal = literal;
+			this.cost = value;
+		}
+	}
+	
+	
+	int Heuristic(ForwardNode current) {
+		//Will turn into the HSP
+		List<HeuristicStorage> costs = new LinkedList();
+		ImmutableArray<Literal> literals = problem.literals;
+		int size = literals.size();
+		for (int i = 0; i < size; i++) {
+			Iterator iterator = current.state.iterator();
+			while (iterator.hasNext()) {
+				Literal literal = (Literal) iterator.next();
+			}
+			costs.add( new HeuristicStorage(literals.get(i), 9999));
+		}
+		Iterator iterator = current.state.iterator();
+		while (iterator.hasNext()) {
+			Literal literal = (Literal) iterator.next();
+		}
+		System.out.println(costs);
+		return 0;
+	}
+	
+	void CheckState(ForwardNode current) {
+		State currentState = current.state;
+		currentState.forEach((e) -> { System.out.println(e); } );
+			
+	}
+
+	@Override
+	public Plan solve() {
+		// Start with only the root node (initial state) in the queue.
+		queue.push(root, 0);
+		// Search until the queue is empty (no more states to consider).
+		while(!queue.isEmpty()) {
+			// Pop a state off the frontier.
+			ForwardNode current = queue.pop();
+			// Check if it is a solution.
+			//CheckState(current);
+			if(problem.isSolution(current.plan))
+				return current.plan;
+			// Consider every possible step...
+			for(Step step : problem.steps) {
+				// If it's precondition is met in the current state...
+				if(step.precondition.isTrue(current.state)) {
+					// Create the state that results from taking this step.
+					MutableState next = new HashState(current.state);
+					step.effect.makeTrue(next);
+					// Add the state results from that step to the frontier.
+					int cost = Heuristic(current);
+					queue.push(current.expand(step, next), cost + 1);
+				}
+			}
+		}
+		// If the queue is empty and we never found a solution, the problem
+		// cannot be solved. Return null.
+		return null;
+	}
+}
