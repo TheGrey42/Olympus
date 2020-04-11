@@ -12,6 +12,7 @@ import edu.uky.ai.logic.MutableState;
 import edu.uky.ai.logic.State;
 import edu.uky.ai.planning.Plan;
 import edu.uky.ai.planning.Step;
+import edu.uky.ai.planning.Utilities;
 import edu.uky.ai.planning.ss.ForwardNode;
 import edu.uky.ai.planning.ss.ForwardSearch;
 import edu.uky.ai.planning.ss.StateSpaceProblem;
@@ -23,7 +24,7 @@ import edu.uky.ai.util.MinPriorityQueue;
  * 
  * @author Stephen G. Ware
  */
-public class BFS extends ForwardSearch {
+public class BreadthFirstSearch extends ForwardSearch {
 
 	/** The queue which will hold the frontier (states not yet visited) */
 	private final MinPriorityQueue<ForwardNode> queue = new MinPriorityQueue();
@@ -36,7 +37,7 @@ public class BFS extends ForwardSearch {
 	 * @param budget the search budget, which constrains how many states may be
 	 * visited and how much time the search can take
 	 */
-	public BFS(StateSpaceProblem problem, SearchBudget budget) {
+	public BreadthFirstSearch(StateSpaceProblem problem, SearchBudget budget) {
 		super(problem, budget);
 	}
 	
@@ -48,6 +49,70 @@ public class BFS extends ForwardSearch {
 			this.literal = literal;
 			this.cost = value;
 		}
+		
+		public void output() {
+			System.out.println(literal + " " + cost);
+		}
+	}
+	
+	
+	public HeuristicStorage findLiteral(Literal literal, List<HeuristicStorage> costs) {
+		for(HeuristicStorage storage : costs) {
+			if(storage.literal.equals(literal)) {
+				return storage;
+			}
+		}
+		return null;
+	}
+	
+	
+	public int findCost(Literal literal, List<HeuristicStorage> costs) {
+		for(HeuristicStorage storage : costs) {
+			if(storage.literal.equals(literal)) {
+				return storage.cost;
+			}
+		}
+		return 9999;
+	}
+	
+	public void changeCost(Literal literal, int cost, List<HeuristicStorage> costs) {
+		for(HeuristicStorage storage: costs) {
+			if(storage.literal.equals(literal)) {
+				storage.cost = cost;
+			}
+		}
+	}
+	
+	public int costOfGoal(List<HeuristicStorage> costs) {
+		int goalscost = 0;
+		for(Literal literal: Utilities.toLiterals(problem.goal)) {
+			int goalcost = findCost(literal, costs);
+			goalscost = goalscost + goalcost;
+		}
+		return goalscost;
+	}
+	
+	public int StepChecker(List<HeuristicStorage> costs) {
+		Boolean HasAnythingChanged = true;
+		while (HasAnythingChanged) {
+			HasAnythingChanged = false;
+			for (Step step : problem.steps) {
+				for (Literal E : Utilities.toLiterals(step.effect)) {
+					int currentcost = findCost(E, costs);
+					int costOFpreconditions = 0;
+					for(Literal F: Utilities.toLiterals(step.precondition)) {
+						int costsub = findCost(F, costs);
+						costOFpreconditions = costOFpreconditions + costsub;
+					}
+					costOFpreconditions++;
+					if (costOFpreconditions +1< currentcost) {
+						changeCost(E, costOFpreconditions + 1, costs);
+						HasAnythingChanged = true;
+					}
+				}
+			}
+		}
+		return costOfGoal(costs);
 	}
 	
 	
@@ -58,17 +123,26 @@ public class BFS extends ForwardSearch {
 		int size = literals.size();
 		for (int i = 0; i < size; i++) {
 			Iterator iterator = current.state.iterator();
-			while (iterator.hasNext()) {
-				Literal literal = (Literal) iterator.next();
-			}
 			costs.add( new HeuristicStorage(literals.get(i), 9999));
 		}
 		Iterator iterator = current.state.iterator();
+		List<Literal> StateLiteral = new LinkedList();
 		while (iterator.hasNext()) {
 			Literal literal = (Literal) iterator.next();
+			StateLiteral.add(literal);
 		}
-		System.out.println(costs);
-		return 0;
+		for (HeuristicStorage storage : costs) {
+			Boolean isLiteralPresent = false;
+			for (Literal stored : StateLiteral) {
+				if (stored.equals(storage.literal)) {
+					isLiteralPresent = true;
+				}
+			}
+			if (isLiteralPresent) {
+				storage.cost = 0;
+			}
+		}
+		return StepChecker(costs);
 	}
 	
 	void CheckState(ForwardNode current) {
@@ -107,3 +181,4 @@ public class BFS extends ForwardSearch {
 		return null;
 	}
 }
+
